@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
+import Dashboard from './pages/admin/Dashboard'
 import PrivateRoute from './components/PrivateRoute'
 
 export default function App() {
@@ -10,7 +11,7 @@ export default function App() {
         path="/admin"
         element={
           <PrivateRoute>
-            <div className="p-8 text-neutral-900 font-medium">Panel admin — próximamente</div>
+            <Dashboard />
           </PrivateRoute>
         }
       />
