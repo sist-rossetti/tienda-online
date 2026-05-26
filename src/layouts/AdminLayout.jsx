@@ -3,11 +3,11 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const navItems = [
-  { to: '/admin', label: 'Dashboard', icon: '▪' },
-  { to: '/admin/productos', label: 'Productos', icon: '▪' },
-  { to: '/admin/categorias', label: 'Categorías', icon: '▪' },
-  { to: '/admin/empleados', label: 'Empleados', icon: '▪' },
-  { to: '/admin/ventas', label: 'Ventas', icon: '▪' },
+  { to: '/admin', label: 'Dashboard' },
+  { to: '/admin/productos', label: 'Productos' },
+  { to: '/admin/categorias', label: 'Categorías' },
+  { to: '/admin/equipo', label: 'Equipo' },
+  { to: '/admin/ventas', label: 'Ventas' },
 ]
 
 export default function AdminLayout({ children }) {
@@ -23,9 +23,7 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="flex h-screen bg-neutral-50 overflow-hidden">
-      {/* Sidebar */}
       <aside className="w-[148px] bg-neutral-900 flex flex-col flex-shrink-0">
-        {/* Brand */}
         <div className="flex items-center gap-2.5 px-4 py-5">
           <div className="w-6 h-6 bg-neutral-700 rounded-lg flex items-center justify-center text-white text-xs">
             S
@@ -33,7 +31,6 @@ export default function AdminLayout({ children }) {
           <span className="text-white text-xs font-medium tracking-tight">abm-shop</span>
         </div>
 
-        {/* Nav */}
         <nav className="flex flex-col gap-0.5 px-2 flex-1">
           {navItems.map(item => (
             <NavLink
@@ -68,7 +65,6 @@ export default function AdminLayout({ children }) {
           </NavLink>
         </nav>
 
-        {/* Footer */}
         <div className="px-2 pb-4">
           <div className="h-px bg-neutral-800 mb-2" />
           <div className="px-3 py-2 mb-1">
@@ -85,7 +81,6 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Main */}
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
