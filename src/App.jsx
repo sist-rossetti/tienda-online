@@ -6,6 +6,7 @@ import Categorias from './pages/admin/Categorias'
 import Equipo from './pages/admin/Equipo'
 import Ventas from './pages/admin/Ventas'
 import Cupones from './pages/admin/Cupones'
+import Estetica from './pages/admin/Estetica'
 import PrivateRoute from './components/PrivateRoute'
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
       <Route path="/admin/equipo" element={<PrivateRoute><Equipo /></PrivateRoute>} />
       <Route path="/admin/ventas" element={<PrivateRoute><Ventas /></PrivateRoute>} />
       <Route path="/admin/cupones" element={<PrivateRoute><Cupones /></PrivateRoute>} />
+      <Route path="/admin/estetica" element={<PrivateRoute><Estetica /></PrivateRoute>} />
       <Route path="/" element={<div className="p-8 text-neutral-900 font-medium">Tienda pública — próximamente</div>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
