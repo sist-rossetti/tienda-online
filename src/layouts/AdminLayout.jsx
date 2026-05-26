@@ -8,6 +8,7 @@ const navItems = [
   { to: '/admin/categorias', label: 'Categorías' },
   { to: '/admin/equipo', label: 'Equipo' },
   { to: '/admin/ventas', label: 'Ventas' },
+  { to: '/admin/cupones', label: 'Cupones' },
 ]
 
 export default function AdminLayout({ children }) {
