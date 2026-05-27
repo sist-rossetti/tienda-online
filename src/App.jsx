@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/admin/Dashboard'
@@ -7,11 +8,22 @@ import Equipo from './pages/admin/Equipo'
 import Ventas from './pages/admin/Ventas'
 import Cupones from './pages/admin/Cupones'
 import Estetica from './pages/admin/Estetica'
+import Home from './pages/store/Home'
+import Catalogo from './pages/store/Catalogo'
+import Carrito from './pages/store/Carrito'
 import PrivateRoute from './components/PrivateRoute'
 
 export default function App() {
+  const [cart, setCart] = useState([])
+
   return (
     <Routes>
+      {/* Tienda pública */}
+      <Route path="/" element={<Home cart={cart} setCart={setCart} />} />
+      <Route path="/catalogo" element={<Catalogo cart={cart} setCart={setCart} />} />
+      <Route path="/carrito" element={<Carrito cart={cart} setCart={setCart} />} />
+
+      {/* Admin */}
       <Route path="/login" element={<Login />} />
       <Route path="/admin" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/admin/productos" element={<PrivateRoute><Productos /></PrivateRoute>} />
@@ -20,7 +32,7 @@ export default function App() {
       <Route path="/admin/ventas" element={<PrivateRoute><Ventas /></PrivateRoute>} />
       <Route path="/admin/cupones" element={<PrivateRoute><Cupones /></PrivateRoute>} />
       <Route path="/admin/estetica" element={<PrivateRoute><Estetica /></PrivateRoute>} />
-      <Route path="/" element={<div className="p-8 text-neutral-900 font-medium">Tienda pública — próximamente</div>} />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
