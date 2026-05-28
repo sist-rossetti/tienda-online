@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import AdminLayout from '../../layouts/AdminLayout'
+import { generarTicket } from '../../utils/generarTicket'
+import { IconDownload } from '@tabler/icons-react'
 
 const ESTADOS = ['completada', 'pendiente', 'cancelada']
-const PAGOS = ['Efectivo', 'Tarjeta', 'Transferencia']
 
 export default function Ventas() {
   const [ventas, setVentas] = useState([])
@@ -11,8 +12,13 @@ export default function Ventas() {
   const [search, setSearch] = useState('')
   const [estadoFilter, setEstadoFilter] = useState('')
   const [selected, setSelected] = useState(null)
+  const [settings, setSettings] = useState(null)
+  const [generando, setGenerando] = useState(false)
 
-  useEffect(() => { fetchVentas() }, [])
+  useEffect(() => {
+    fetchVentas()
+    supabase.from('store_settings').select('*').single().then(({ data }) => setSettings(data))
+  }, [])
 
   async function fetchVentas() {
     setLoading(true)
@@ -27,7 +33,13 @@ export default function Ventas() {
   async function updateEstado(id, status) {
     await supabase.from('sales').update({ status }).eq('id', id)
     fetchVentas()
-    if (selected?.id === id) setSelected({ ...selected, status })
+    if (selected?.id === id) setSelected(prev => ({ ...prev, status }))
+  }
+
+  async function handleGenerarTicket(venta) {
+    setGenerando(true)
+    await generarTicket(venta, settings || {})
+    setGenerando(false)
   }
 
   const filtered = ventas.filter(v => {
@@ -40,7 +52,8 @@ export default function Ventas() {
 
   const totalVendido = ventas.filter(v => v.status === 'completada').reduce((acc, v) => acc + Number(v.total), 0)
   const totalOrdenes = ventas.length
-  const ticketProm = totalOrdenes > 0 ? totalVendido / ventas.filter(v => v.status === 'completada').length || 0 : 0
+  const completadas = ventas.filter(v => v.status === 'completada')
+  const ticketProm = completadas.length > 0 ? totalVendido / completadas.length : 0
 
   function estadoBadge(status) {
     const styles = {
@@ -80,7 +93,7 @@ export default function Ventas() {
             }}
             className="border border-neutral-200 text-neutral-600 text-sm font-medium px-5 py-2.5 rounded-full hover:bg-neutral-50 transition flex items-center gap-2"
           >
-            ↓ Exportar CSV
+            <IconDownload size={15} /> Exportar CSV
           </button>
         </div>
 
@@ -113,7 +126,7 @@ export default function Ventas() {
 
         {/* Tabla */}
         <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden">
-          <div className="grid grid-cols-[90px_1fr_1fr_100px_90px_100px] px-5 py-3 bg-neutral-50 text-xs text-neutral-400 uppercase tracking-widest">
+          <div className="grid grid-cols-[90px_1fr_1fr_100px_90px_110px] px-5 py-3 bg-neutral-50 text-xs text-neutral-400 uppercase tracking-widest">
             <span>Orden</span><span>Cliente</span><span>Empleado</span><span>Total</span><span>Estado</span><span>Acciones</span>
           </div>
           {loading ? (
@@ -121,7 +134,7 @@ export default function Ventas() {
           ) : filtered.length === 0 ? (
             <div className="px-5 py-10 text-center text-sm text-neutral-400">No hay ventas</div>
           ) : filtered.map(v => (
-            <div key={v.id} className="grid grid-cols-[90px_1fr_1fr_100px_90px_100px] px-5 py-4 border-t border-neutral-100 items-center hover:bg-neutral-50 transition cursor-pointer" onClick={() => setSelected(v)}>
+            <div key={v.id} className="grid grid-cols-[90px_1fr_1fr_100px_90px_110px] px-5 py-4 border-t border-neutral-100 items-center hover:bg-neutral-50 transition cursor-pointer" onClick={() => setSelected(v)}>
               <span className="text-sm font-medium text-neutral-900">{v.order_number}</span>
               <div>
                 <p className="text-sm font-medium text-neutral-900">{v.customer_name}</p>
@@ -176,12 +189,12 @@ export default function Ventas() {
             </div>
 
             <div className="flex flex-col gap-1.5 mb-5">
-              <div className="flex justify-between text-sm"><span className="text-neutral-400">Subtotal</span><span>${Number(selected.total + (selected.discount || 0)).toLocaleString('es-AR')}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-neutral-400">Subtotal</span><span>${Number(Number(selected.total) + Number(selected.discount || 0)).toLocaleString('es-AR')}</span></div>
               {selected.discount > 0 && <div className="flex justify-between text-sm"><span className="text-neutral-400">Descuento</span><span className="text-green-600">−${Number(selected.discount).toLocaleString('es-AR')}</span></div>}
               <div className="flex justify-between text-base font-medium"><span>Total</span><span>${Number(selected.total).toLocaleString('es-AR')}</span></div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-3">
               {ESTADOS.map(s => (
                 <button
                   key={s}
@@ -192,6 +205,15 @@ export default function Ventas() {
                 </button>
               ))}
             </div>
+
+            <button
+              onClick={() => handleGenerarTicket(selected)}
+              disabled={generando}
+              className="w-full flex items-center justify-center gap-2 border border-neutral-200 text-neutral-600 text-sm font-medium py-2.5 rounded-full hover:bg-neutral-50 transition disabled:opacity-50"
+            >
+              <IconDownload size={15} />
+              {generando ? 'Generando...' : 'Descargar ticket PDF'}
+            </button>
           </div>
         </div>
       )}
