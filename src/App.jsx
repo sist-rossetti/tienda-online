@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useCart } from './hooks/useCart'
 import Login from './pages/Login'
 import Dashboard from './pages/admin/Dashboard'
 import Productos from './pages/admin/Productos'
@@ -14,7 +14,7 @@ import Carrito from './pages/store/Carrito'
 import PrivateRoute from './components/PrivateRoute'
 
 export default function App() {
-  const [cart, setCart] = useState([])
+  const [cart, setCart] = useCart()
 
   return (
     <Routes>

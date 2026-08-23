@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-
-const AuthContext = createContext()
+import { AuthContext } from './authContext'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -9,6 +8,16 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    async function fetchEmployee(userId) {
+      const { data } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+      setEmployee(data)
+      setLoading(false)
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchEmployee(session.user.id)
@@ -27,16 +36,6 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  async function fetchEmployee(userId) {
-    const { data } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-    setEmployee(data)
-    setLoading(false)
-  }
-
   async function signIn(email, password) {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     return { error }
@@ -51,8 +50,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  return useContext(AuthContext)
 }

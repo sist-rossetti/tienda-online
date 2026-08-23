@@ -1,5 +1,28 @@
 import jsPDF from 'jspdf'
 
+async function cargarLogo(url) {
+  try {
+    const res = await fetch(url)
+    const blob = await res.blob()
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
+    const { width, height } = await new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
+      img.onerror = reject
+      img.src = dataUrl
+    })
+    const format = /^data:image\/(png|jpe?g|webp)/i.exec(dataUrl)?.[1]?.toUpperCase().replace('JPG', 'JPEG') || 'PNG'
+    return { dataUrl, width, height, format }
+  } catch {
+    return null
+  }
+}
+
 export async function generarTicket(venta, settings) {
   const ancho = 80
   const margen = 6
@@ -45,13 +68,26 @@ export async function generarTicket(venta, settings) {
     return map[field.value] || field.value
   }
 
+  // Logo (si hay uno cargado en Estética)
+  const logo = settings.logo_url ? await cargarLogo(settings.logo_url) : null
+
   // Encabezado con color
   const headerColor = settings.ticket_header_color || '#111111'
   const r = parseInt(headerColor.slice(1, 3), 16)
   const g = parseInt(headerColor.slice(3, 5), 16)
   const b = parseInt(headerColor.slice(5, 7), 16)
+  const headerH = logo ? 36 : 26
   doc.setFillColor(r, g, b)
-  doc.rect(0, 0, ancho, 26, 'F')
+  doc.rect(0, 0, ancho, headerH, 'F')
+
+  if (logo) {
+    const maxW = 34, maxH = 14
+    const escala = Math.min(maxW / logo.width, maxH / logo.height, 1)
+    const w = logo.width * escala
+    const h = logo.height * escala
+    doc.addImage(logo.dataUrl, logo.format, (ancho - w) / 2, 4, w, h)
+    y = 4 + h + 4
+  }
 
   doc.setTextColor(255, 255, 255)
   linea(settings.store_name || 'Mi Tienda', 12, true, 'center')
@@ -60,7 +96,7 @@ export async function generarTicket(venta, settings) {
   if (settings.cuit) linea(`CUIT: ${settings.cuit}`, 7, false, 'center')
 
   doc.setTextColor(0, 0, 0)
-  y = Math.max(y, 30)
+  y = Math.max(y, headerH + 4)
   separador()
 
   // Datos de la orden

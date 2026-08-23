@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { IconPackage, IconSearch, IconArrowRight } from '@tabler/icons-react'
+import { IconPackage, IconSearch, IconAdjustmentsHorizontal, IconX } from '@tabler/icons-react'
 import { supabase } from '../../lib/supabase'
 import { useStoreSettings } from '../../hooks/useStoreSettings'
 import StoreLayout from './Layout'
@@ -16,18 +16,18 @@ export default function Catalogo({ cart, setCart }) {
   const [precioMax, setPrecioMax] = useState(200000)
   const [soloStock, setSoloStock] = useState(true)
   const [orden, setOrden] = useState('reciente')
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   useEffect(() => {
+    async function fetchProductos() {
+      setLoading(true)
+      const { data } = await supabase.from('products').select('*, categories(id, name, parent_id)').eq('active', true)
+      setProductos(data || [])
+      setLoading(false)
+    }
     supabase.from('categories').select('*').eq('active', true).then(({ data }) => setCategorias(data || []))
     fetchProductos()
   }, [])
-
-  async function fetchProductos() {
-    setLoading(true)
-    const { data } = await supabase.from('products').select('*, categories(id, name, parent_id)').eq('active', true)
-    setProductos(data || [])
-    setLoading(false)
-  }
 
   function addToCart(producto) {
     setCart(prev => {
@@ -65,90 +65,122 @@ export default function Catalogo({ cart, setCart }) {
 
   if (!settings) return null
 
+  const filtrosContent = (
+    <>
+      <div className="mb-5">
+        <div className="flex items-center gap-2 bg-white border border-stone-200 rounded-full px-3 py-2">
+          <IconSearch size={14} className="text-stone-300 flex-shrink-0" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..." className="flex-1 text-sm text-stone-900 outline-none bg-transparent" />
+        </div>
+      </div>
+      <div className="mb-5">
+        <p className="text-xs text-stone-400 uppercase tracking-widest mb-3">Categoría</p>
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="cat" value="" checked={catFilter === ''} onChange={() => setCatFilter('')} style={{ accentColor: settings.primary_color }} />
+            <span className="text-sm text-stone-600">Todas</span>
+          </label>
+          {padres.map(p => (
+            <div key={p.id}>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="cat" value={p.id} checked={catFilter === p.id} onChange={() => setCatFilter(p.id)} style={{ accentColor: settings.primary_color }} />
+                <span className="text-sm text-stone-700 font-medium">{p.name}</span>
+              </label>
+              {subcategorias.filter(s => s.parent_id === p.id).map(s => (
+                <label key={s.id} className="flex items-center gap-2 cursor-pointer ml-4 mt-1">
+                  <input type="radio" name="cat" value={s.id} checked={catFilter === s.id} onChange={() => setCatFilter(s.id)} style={{ accentColor: settings.primary_color }} />
+                  <span className="text-sm text-stone-400">{s.name}</span>
+                </label>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mb-5">
+        <p className="text-xs text-stone-400 uppercase tracking-widest mb-3">Precio máx. — ${precioMax.toLocaleString('es-AR')}</p>
+        <input type="range" min="0" max="500000" step="1000" value={precioMax} onChange={e => setPrecioMax(Number(e.target.value))} className="w-full" style={{ accentColor: settings.primary_color }} />
+      </div>
+      <div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={soloStock} onChange={e => setSoloStock(e.target.checked)} className="w-4 h-4" style={{ accentColor: settings.primary_color }} />
+          <span className="text-sm text-stone-600">Solo con stock</span>
+        </label>
+      </div>
+    </>
+  )
+
   return (
     <StoreLayout cart={cart}>
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex gap-8">
-          {/* Sidebar */}
-          <aside className="w-52 flex-shrink-0">
-            <h2 className="text-sm font-medium text-neutral-900 mb-5" style={{ fontFamily: settings.font_family }}>Filtros</h2>
-            <div className="mb-5">
-              <div className="flex items-center gap-2 bg-white border border-neutral-200 rounded-full px-3 py-2">
-                <IconSearch size={14} className="text-neutral-300 flex-shrink-0" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..." className="flex-1 text-sm text-neutral-900 outline-none bg-transparent" />
-              </div>
-            </div>
-            <div className="mb-5">
-              <p className="text-xs text-neutral-400 uppercase tracking-widest mb-3">Categoría</p>
-              <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="cat" value="" checked={catFilter === ''} onChange={() => setCatFilter('')} className="accent-neutral-900" />
-                  <span className="text-sm text-neutral-600">Todas</span>
-                </label>
-                {padres.map(p => (
-                  <div key={p.id}>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="radio" name="cat" value={p.id} checked={catFilter === p.id} onChange={() => setCatFilter(p.id)} className="accent-neutral-900" />
-                      <span className="text-sm text-neutral-700 font-medium">{p.name}</span>
-                    </label>
-                    {subcategorias.filter(s => s.parent_id === p.id).map(s => (
-                      <label key={s.id} className="flex items-center gap-2 cursor-pointer ml-4 mt-1">
-                        <input type="radio" name="cat" value={s.id} checked={catFilter === s.id} onChange={() => setCatFilter(s.id)} className="accent-neutral-900" />
-                        <span className="text-sm text-neutral-400">{s.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mb-5">
-              <p className="text-xs text-neutral-400 uppercase tracking-widest mb-3">Precio máx. — ${precioMax.toLocaleString('es-AR')}</p>
-              <input type="range" min="0" max="500000" step="1000" value={precioMax} onChange={e => setPrecioMax(Number(e.target.value))} className="w-full accent-neutral-900" />
-            </div>
-            <div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={soloStock} onChange={e => setSoloStock(e.target.checked)} className="w-4 h-4 accent-neutral-900" />
-                <span className="text-sm text-neutral-600">Solo con stock</span>
-              </label>
-            </div>
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-8 sm:py-10">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar desktop */}
+          <aside className="hidden lg:block w-52 flex-shrink-0">
+            <h2 className="text-sm font-medium text-stone-900 mb-5" style={{ fontFamily: settings.heading_font_family }}>Filtros</h2>
+            {filtrosContent}
           </aside>
 
+          {/* Filtros mobile: toggle */}
+          <div className="lg:hidden">
+            <button onClick={() => setFiltersOpen(o => !o)} className="w-full flex items-center justify-between px-4 py-2.5 border border-stone-200 rounded-full text-sm text-stone-600 bg-white">
+              <span className="flex items-center gap-2">{filtersOpen ? <IconX size={16} /> : <IconAdjustmentsHorizontal size={16} />} Filtros</span>
+              <span className="text-xs text-stone-400">{filtered.length} productos</span>
+            </button>
+            {filtersOpen && (
+              <div className="mt-4 p-4 bg-white border border-stone-200 rounded-2xl">
+                <h2 className="text-sm font-medium text-stone-900 mb-4" style={{ fontFamily: settings.heading_font_family }}>Filtros</h2>
+                {filtrosContent}
+              </div>
+            )}
+          </div>
+
           {/* Productos */}
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-neutral-400">{filtered.length} productos</p>
-              <select value={orden} onChange={e => setOrden(e.target.value)} className="border border-neutral-200 rounded-full px-4 py-2 text-sm text-neutral-600 bg-white outline-none">
+          <div className="flex-1 min-w-0">
+            <div className="hidden lg:flex items-center justify-between mb-6">
+              <p className="text-sm text-stone-400">{filtered.length} productos</p>
+              <select value={orden} onChange={e => setOrden(e.target.value)} className="border border-stone-200 rounded-full px-4 py-2 text-sm text-stone-600 bg-white outline-none">
+                <option value="reciente">Más reciente</option>
+                <option value="precio_asc">Menor precio</option>
+                <option value="precio_desc">Mayor precio</option>
+              </select>
+            </div>
+            <div className="flex lg:hidden justify-end mt-4 mb-2">
+              <select value={orden} onChange={e => setOrden(e.target.value)} className="border border-stone-200 rounded-full px-4 py-2 text-sm text-stone-600 bg-white outline-none">
                 <option value="reciente">Más reciente</option>
                 <option value="precio_asc">Menor precio</option>
                 <option value="precio_desc">Mayor precio</option>
               </select>
             </div>
             {loading ? (
-              <div className="py-20 text-center text-sm text-neutral-400">Cargando...</div>
+              <div className="py-20 text-center text-sm text-stone-400">Cargando...</div>
             ) : filtered.length === 0 ? (
-              <div className="py-20 text-center text-sm text-neutral-400">No hay productos con estos filtros</div>
+              <div className="py-20 text-center text-sm text-stone-400">No hay productos con estos filtros</div>
             ) : (
-              <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${settings.product_columns}, 1fr)` }}>
+              <div className="grid grid-cols-2 md:grid-cols-[repeat(var(--cols),minmax(0,1fr))] gap-4 sm:gap-6" style={{ '--cols': settings.product_columns }}>
                 {filtered.map(p => (
-                  <div key={p.id} className="bg-white border border-neutral-200 overflow-hidden hover:border-neutral-400 transition" style={{ borderRadius: settings.card_radius }}>
-                    <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
+                  <div key={p.id} className="flex flex-col">
+                    <div className="aspect-square bg-stone-100 overflow-hidden mb-3" style={{ borderRadius: settings.card_radius }}>
                       {p.image_url
                         ? <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
-                        : <IconPackage size={40} className="text-neutral-300" />
+                        : <div className="w-full h-full flex items-center justify-center"><IconPackage size={32} className="text-stone-300" /></div>
                       }
                     </div>
-                    <div className="p-4">
-                      <p className="text-xs text-neutral-400 mb-1">{p.categories?.name}</p>
-                      <p className="text-sm font-medium text-neutral-900 mb-1" style={{ fontFamily: settings.font_family }}>{p.name}</p>
-                      {p.description && <p className="text-xs text-neutral-400 mb-3 line-clamp-2">{p.description}</p>}
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-base font-medium" style={{ color: settings.price_color }}>${Number(p.price).toLocaleString('es-AR')}</p>
-                        {p.stock > 0
-                          ? <button onClick={() => addToCart(p)} className="text-xs font-medium px-3 py-1.5 rounded-full text-white transition hover:opacity-80" style={{ background: settings.primary_color }}>+ Agregar</button>
-                          : <span className="text-xs text-neutral-400">Sin stock</span>
-                        }
-                      </div>
-                    </div>
+                    <p className="text-xs uppercase tracking-wide text-stone-400 mb-1">{p.categories?.name}</p>
+                    <p className="text-sm font-medium text-stone-900 mb-1" style={{ fontFamily: settings.heading_font_family }}>{p.name}</p>
+                    {p.description && <p className="text-xs text-stone-400 mb-2 line-clamp-2">{p.description}</p>}
+                    <p className="text-sm mb-3" style={{ color: settings.price_color }}>${Number(p.price).toLocaleString('es-AR')}</p>
+                    {p.stock > 0 ? (
+                      <button
+                        onClick={() => addToCart(p)}
+                        className="mt-auto w-full text-xs font-medium uppercase tracking-widest py-2.5 transition hover:text-white"
+                        style={{ border: `1px solid ${settings.primary_color}`, color: settings.primary_color, borderRadius: Math.min(settings.card_radius, 6) }}
+                        onMouseEnter={e => { e.currentTarget.style.background = settings.primary_color }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                      >
+                        Agregar
+                      </button>
+                    ) : (
+                      <span className="mt-auto text-xs text-stone-400 text-center py-2.5">Sin stock</span>
+                    )}
                   </div>
                 ))}
               </div>

@@ -1,18 +1,23 @@
 import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import { useStoreSettings } from '../hooks/useStoreSettings'
+import { googleFontsUrl, contrastText } from '../lib/theme'
+import TopNav from '../components/TopNav'
 
 const navItems = [
-  { to: '/admin', label: 'Dashboard' },
+  { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/productos', label: 'Productos' },
   { to: '/admin/categorias', label: 'Categorías' },
   { to: '/admin/equipo', label: 'Equipo' },
   { to: '/admin/ventas', label: 'Ventas' },
   { to: '/admin/cupones', label: 'Cupones' },
+  { to: '/admin/estetica', label: 'Estética' },
 ]
 
 export default function AdminLayout({ children }) {
   const { employee, signOut } = useAuth()
+  const { settings, loading } = useStoreSettings()
   const navigate = useNavigate()
   const [signingOut, setSigningOut] = useState(false)
 
@@ -22,69 +27,37 @@ export default function AdminLayout({ children }) {
     navigate('/login')
   }
 
-  return (
-    <div className="flex h-screen bg-neutral-50 overflow-hidden">
-      <aside className="w-[148px] bg-neutral-900 flex flex-col flex-shrink-0">
-        <div className="flex items-center gap-2.5 px-4 py-5">
-          <div className="w-6 h-6 bg-neutral-700 rounded-lg flex items-center justify-center text-white text-xs">
-            S
-          </div>
-          <span className="text-white text-xs font-medium tracking-tight">abm-shop</span>
-        </div>
+  if (loading || !settings) {
+    return <div className="min-h-screen bg-stone-50 flex items-center justify-center"><p className="text-sm text-stone-400">Cargando...</p></div>
+  }
 
-        <nav className="flex flex-col gap-0.5 px-2 flex-1">
-          {navItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/admin'}
-              className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-colors ${
-                  isActive
-                    ? 'bg-neutral-800 text-white font-medium'
-                    : 'text-neutral-500 hover:text-neutral-300'
-                }`
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+  const fontLink = googleFontsUrl([settings.font_family, settings.heading_font_family])
+  const navText = contrastText(settings.navbar_color)
 
-          <div className="my-2 h-px bg-neutral-800" />
-
-          <NavLink
-            to="/admin/estetica"
-            className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-colors ${
-                isActive
-                  ? 'bg-neutral-800 text-white font-medium'
-                  : 'text-neutral-500 hover:text-neutral-300'
-              }`
-            }
-          >
-            Estética
-          </NavLink>
-        </nav>
-
-        <div className="px-2 pb-4">
-          <div className="h-px bg-neutral-800 mb-2" />
-          <div className="px-3 py-2 mb-1">
-            <p className="text-neutral-400 text-xs truncate">{employee?.name}</p>
-            <p className="text-neutral-600 text-xs truncate">{employee?.role}</p>
-          </div>
-          <button
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
-          >
-            {signingOut ? 'Saliendo...' : 'Cerrar sesión'}
-          </button>
-        </div>
-      </aside>
-
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
+  const account = (
+    <div className="flex items-center gap-3">
+      <div className="text-right leading-tight">
+        <p className="text-xs" style={{ color: navText }}>{employee?.name}</p>
+        <p className="text-[10px] capitalize" style={{ color: navText, opacity: 0.5 }}>{employee?.role}</p>
+      </div>
+      <button
+        onClick={handleSignOut}
+        disabled={signingOut}
+        className="text-xs uppercase tracking-widest hover:opacity-100 transition"
+        style={{ color: navText, opacity: 0.7 }}
+      >
+        {signingOut ? '...' : 'Salir'}
+      </button>
     </div>
+  )
+
+  return (
+    <>
+      <link rel="stylesheet" href={fontLink} />
+      <div className="min-h-screen flex flex-col" style={{ background: settings.secondary_color, fontFamily: settings.font_family }}>
+        <TopNav settings={settings} logoTo="/admin" links={navItems} right={account} mobileExtra={account} breakpoint="lg" />
+        <main className="flex-1">{children}</main>
+      </div>
+    </>
   )
 }

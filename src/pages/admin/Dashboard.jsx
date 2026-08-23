@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import AdminLayout from '../../layouts/AdminLayout'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../hooks/useAuth'
 import { IconTrendingUp, IconShoppingCart, IconAlertTriangle, IconReceipt } from '@tabler/icons-react'
 
 export default function Dashboard() {
@@ -11,18 +11,19 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [periodo, setPeriodo] = useState('semana')
 
-  useEffect(() => { fetchData() }, [])
-
-  async function fetchData() {
-    setLoading(true)
-    const [{ data: v }, { data: p }] = await Promise.all([
-      supabase.from('sales').select('*, employees(name)').order('created_at', { ascending: false }),
-      supabase.from('products').select('*').eq('active', true)
-    ])
-    setVentas(v || [])
-    setProductos(p || [])
-    setLoading(false)
-  }
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true)
+      const [{ data: v }, { data: p }] = await Promise.all([
+        supabase.from('sales').select('*, employees(name)').order('created_at', { ascending: false }),
+        supabase.from('products').select('*').eq('active', true)
+      ])
+      setVentas(v || [])
+      setProductos(p || [])
+      setLoading(false)
+    }
+    fetchData()
+  }, [])
 
   function filtrarPorPeriodo(ventas) {
     const ahora = new Date()
@@ -67,16 +68,16 @@ export default function Dashboard() {
 
   return (
     <AdminLayout>
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-medium text-neutral-900 tracking-tight">Dashboard</h1>
-            <p className="text-sm text-neutral-400 mt-0.5">Bienvenida, {employee?.name?.split(' ')[0]}</p>
+            <h1 className="text-2xl font-medium text-stone-900 tracking-tight" style={{ fontFamily: 'Bricolage Grotesque' }}>Dashboard</h1>
+            <p className="text-sm text-stone-400 mt-0.5">Bienvenida, {employee?.name?.split(' ')[0]}</p>
           </div>
-          <div className="flex gap-1 bg-neutral-100 rounded-full p-1">
+          <div className="flex gap-1 bg-stone-100 rounded-full p-1 w-fit">
             {['hoy', 'semana', 'mes'].map(p => (
-              <button key={p} onClick={() => setPeriodo(p)} className={`px-4 py-1.5 rounded-full text-xs font-medium transition capitalize ${periodo === p ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}>
+              <button key={p} onClick={() => setPeriodo(p)} className={`px-4 py-1.5 rounded-full text-xs font-medium transition capitalize ${periodo === p ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}>
                 {p === 'hoy' ? 'Hoy' : p === 'semana' ? 'Semana' : 'Mes'}
               </button>
             ))}
@@ -84,76 +85,76 @@ export default function Dashboard() {
         </div>
 
         {/* Métricas */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-white border border-neutral-200 rounded-2xl p-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white border border-stone-200 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-neutral-400 uppercase tracking-widest">Total vendido</p>
-              <div className="w-8 h-8 bg-neutral-50 rounded-xl flex items-center justify-center">
-                <IconTrendingUp size={16} className="text-neutral-400" />
+              <p className="text-xs text-stone-400 uppercase tracking-widest">Total vendido</p>
+              <div className="w-8 h-8 bg-stone-50 rounded-xl flex items-center justify-center">
+                <IconTrendingUp size={16} className="text-stone-400" />
               </div>
             </div>
-            <p className="text-2xl font-medium text-neutral-900">${totalVendido.toLocaleString('es-AR')}</p>
-            <p className="text-xs text-neutral-400 mt-1">{completadas.length} ventas completadas</p>
+            <p className="text-2xl font-medium text-stone-900">${totalVendido.toLocaleString('es-AR')}</p>
+            <p className="text-xs text-stone-400 mt-1">{completadas.length} ventas completadas</p>
           </div>
-          <div className="bg-white border border-neutral-200 rounded-2xl p-5">
+          <div className="bg-white border border-stone-200 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-neutral-400 uppercase tracking-widest">Órdenes</p>
-              <div className="w-8 h-8 bg-neutral-50 rounded-xl flex items-center justify-center">
-                <IconShoppingCart size={16} className="text-neutral-400" />
+              <p className="text-xs text-stone-400 uppercase tracking-widest">Órdenes</p>
+              <div className="w-8 h-8 bg-stone-50 rounded-xl flex items-center justify-center">
+                <IconShoppingCart size={16} className="text-stone-400" />
               </div>
             </div>
-            <p className="text-2xl font-medium text-neutral-900">{ventasFiltradas.length}</p>
-            <p className="text-xs text-neutral-400 mt-1">{ventasFiltradas.filter(v => v.status === 'pendiente').length} pendientes</p>
+            <p className="text-2xl font-medium text-stone-900">{ventasFiltradas.length}</p>
+            <p className="text-xs text-stone-400 mt-1">{ventasFiltradas.filter(v => v.status === 'pendiente').length} pendientes</p>
           </div>
-          <div className="bg-white border border-neutral-200 rounded-2xl p-5">
+          <div className="bg-white border border-stone-200 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-neutral-400 uppercase tracking-widest">Ticket prom.</p>
-              <div className="w-8 h-8 bg-neutral-50 rounded-xl flex items-center justify-center">
-                <IconReceipt size={16} className="text-neutral-400" />
+              <p className="text-xs text-stone-400 uppercase tracking-widest">Ticket prom.</p>
+              <div className="w-8 h-8 bg-stone-50 rounded-xl flex items-center justify-center">
+                <IconReceipt size={16} className="text-stone-400" />
               </div>
             </div>
-            <p className="text-2xl font-medium text-neutral-900">${Math.round(ticketProm).toLocaleString('es-AR')}</p>
-            <p className="text-xs text-neutral-400 mt-1">por orden completada</p>
+            <p className="text-2xl font-medium text-stone-900">${Math.round(ticketProm).toLocaleString('es-AR')}</p>
+            <p className="text-xs text-stone-400 mt-1">por orden completada</p>
           </div>
-          <div className="bg-white border border-neutral-200 rounded-2xl p-5">
+          <div className="bg-white border border-stone-200 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-neutral-400 uppercase tracking-widest">Stock crítico</p>
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${stockCritico.length > 0 ? 'bg-red-50' : 'bg-neutral-50'}`}>
-                <IconAlertTriangle size={16} className={stockCritico.length > 0 ? 'text-red-400' : 'text-neutral-400'} />
+              <p className="text-xs text-stone-400 uppercase tracking-widest">Stock crítico</p>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${stockCritico.length > 0 ? 'bg-red-50' : 'bg-stone-50'}`}>
+                <IconAlertTriangle size={16} className={stockCritico.length > 0 ? 'text-red-400' : 'text-stone-400'} />
               </div>
             </div>
-            <p className={`text-2xl font-medium ${stockCritico.length > 0 ? 'text-red-500' : 'text-neutral-900'}`}>{stockCritico.length}</p>
-            <p className="text-xs text-neutral-400 mt-1">productos con stock ≤ 5</p>
+            <p className={`text-2xl font-medium ${stockCritico.length > 0 ? 'text-red-500' : 'text-stone-900'}`}>{stockCritico.length}</p>
+            <p className="text-xs text-stone-400 mt-1">productos con stock ≤ 5</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-[1fr_320px] gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 mb-6">
           {/* Gráfico de barras */}
-          <div className="bg-white border border-neutral-200 rounded-2xl p-6">
+          <div className="bg-white border border-stone-200 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-sm font-medium text-neutral-900">Ventas por día</h2>
-              <span className="text-xs text-neutral-400">Últimos 7 días</span>
+              <h2 className="text-sm font-medium text-stone-900">Ventas por día</h2>
+              <span className="text-xs text-stone-400">Últimos 7 días</span>
             </div>
             <div className="flex items-end gap-3 h-32">
               {barras.map((b, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full rounded-t-lg bg-neutral-900 transition-all" style={{ height: `${Math.max(b.pct, 4)}%`, opacity: b.pct > 0 ? 0.7 + (b.pct / 100) * 0.3 : 0.15 }}></div>
-                  <span className="text-xs text-neutral-400">{b.dia}</span>
+                  <div className="w-full rounded-t-lg bg-stone-900 transition-all" style={{ height: `${Math.max(b.pct, 4)}%`, opacity: b.pct > 0 ? 0.7 + (b.pct / 100) * 0.3 : 0.15 }}></div>
+                  <span className="text-xs text-stone-400">{b.dia}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Stock crítico */}
-          <div className="bg-white border border-neutral-200 rounded-2xl p-6">
-            <h2 className="text-sm font-medium text-neutral-900 mb-4">Stock crítico</h2>
+          <div className="bg-white border border-stone-200 rounded-2xl p-6">
+            <h2 className="text-sm font-medium text-stone-900 mb-4">Stock crítico</h2>
             {stockCritico.length === 0 ? (
-              <div className="py-8 text-center text-sm text-neutral-400">Todo el stock está bien</div>
+              <div className="py-8 text-center text-sm text-stone-400">Todo el stock está bien</div>
             ) : (
               <div className="flex flex-col gap-2">
                 {stockCritico.slice(0, 6).map(p => (
-                  <div key={p.id} className="flex items-center justify-between py-2 border-b border-neutral-50">
-                    <p className="text-sm text-neutral-900 truncate flex-1">{p.name}</p>
+                  <div key={p.id} className="flex items-center justify-between py-2 border-b border-stone-50">
+                    <p className="text-sm text-stone-900 truncate flex-1">{p.name}</p>
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ml-3 flex-shrink-0 ${p.stock === 0 ? 'bg-red-50 text-red-500' : 'bg-yellow-50 text-yellow-600'}`}>
                       {p.stock === 0 ? 'Sin stock' : `${p.stock} restantes`}
                     </span>
@@ -165,29 +166,33 @@ export default function Dashboard() {
         </div>
 
         {/* Últimas ventas */}
-        <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-neutral-900">Últimas ventas</h2>
+        <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
+            <h2 className="text-sm font-medium text-stone-900">Últimas ventas</h2>
           </div>
-          <div className="grid grid-cols-[90px_1fr_1fr_100px_90px] px-6 py-3 bg-neutral-50 text-xs text-neutral-400 uppercase tracking-widest">
-            <span>Orden</span><span>Cliente</span><span>Empleado</span><span>Total</span><span>Estado</span>
-          </div>
-          {loading ? (
-            <div className="px-6 py-10 text-center text-sm text-neutral-400">Cargando...</div>
-          ) : ventas.length === 0 ? (
-            <div className="px-6 py-10 text-center text-sm text-neutral-400">No hay ventas todavía</div>
-          ) : ventas.slice(0, 8).map(v => (
-            <div key={v.id} className="grid grid-cols-[90px_1fr_1fr_100px_90px] px-6 py-4 border-t border-neutral-100 items-center">
-              <span className="text-sm font-medium text-neutral-900">{v.order_number}</span>
-              <div>
-                <p className="text-sm font-medium text-neutral-900">{v.customer_name}</p>
-                <p className="text-xs text-neutral-400">{new Date(v.created_at).toLocaleDateString('es-AR')}</p>
+          <div className="overflow-x-auto">
+            <div className="min-w-[560px]">
+              <div className="grid grid-cols-[90px_1fr_1fr_100px_90px] px-6 py-3 bg-stone-50 text-xs text-stone-400 uppercase tracking-widest">
+                <span>Orden</span><span>Cliente</span><span>Empleado</span><span>Total</span><span>Estado</span>
               </div>
-              <span className="text-sm text-neutral-400">{v.employees?.name || '—'}</span>
-              <span className="text-sm font-medium text-neutral-900">${Number(v.total).toLocaleString('es-AR')}</span>
-              <span>{estadoBadge(v.status)}</span>
+              {loading ? (
+                <div className="px-6 py-10 text-center text-sm text-stone-400">Cargando...</div>
+              ) : ventas.length === 0 ? (
+                <div className="px-6 py-10 text-center text-sm text-stone-400">No hay ventas todavía</div>
+              ) : ventas.slice(0, 8).map(v => (
+                <div key={v.id} className="grid grid-cols-[90px_1fr_1fr_100px_90px] px-6 py-4 border-t border-stone-100 items-center">
+                  <span className="text-sm font-medium text-stone-900">{v.order_number}</span>
+                  <div>
+                    <p className="text-sm font-medium text-stone-900">{v.customer_name}</p>
+                    <p className="text-xs text-stone-400">{new Date(v.created_at).toLocaleDateString('es-AR')}</p>
+                  </div>
+                  <span className="text-sm text-stone-400">{v.employees?.name || '—'}</span>
+                  <span className="text-sm font-medium text-stone-900">${Number(v.total).toLocaleString('es-AR')}</span>
+                  <span>{estadoBadge(v.status)}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </AdminLayout>
