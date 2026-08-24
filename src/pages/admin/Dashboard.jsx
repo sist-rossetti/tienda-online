@@ -135,9 +135,9 @@ export default function Dashboard() {
               <h2 className="text-sm font-medium text-stone-900">Ventas por día</h2>
               <span className="text-xs text-stone-400">Últimos 7 días</span>
             </div>
-            <div className="flex items-end gap-3 h-32">
+            <div className="flex items-stretch gap-3 h-32">
               {barras.map((b, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                <div key={i} className="flex-1 flex flex-col items-center justify-end gap-2">
                   <div className="w-full rounded-t-lg bg-stone-900 transition-all" style={{ height: `${Math.max(b.pct, 4)}%`, opacity: b.pct > 0 ? 0.7 + (b.pct / 100) * 0.3 : 0.15 }}></div>
                   <span className="text-xs text-stone-400">{b.dia}</span>
                 </div>
