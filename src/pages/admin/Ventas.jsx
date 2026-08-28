@@ -86,9 +86,9 @@ export default function Ventas() {
           <button
             onClick={() => {
               const csv = [
-                ['Orden', 'Cliente', 'Email', 'DNI', 'Empleado', 'Total', 'Descuento', 'Pago', 'Estado', 'Fecha'],
+                ['Orden', 'Cliente', 'Email', 'Teléfono', 'DNI', 'Empleado', 'Total', 'Descuento', 'Pago', 'Estado', 'Fecha'],
                 ...ventas.map(v => [
-                  v.order_number, v.customer_name, v.customer_email || '', v.customer_doc || '',
+                  v.order_number, v.customer_name, v.customer_email || '', v.customer_phone || '', v.customer_doc || '',
                   v.employees?.name || '', v.total, v.discount || 0, v.payment_method, v.status,
                   formatFecha(v.created_at)
                 ])
@@ -177,6 +177,7 @@ export default function Ventas() {
               {[
                 { label: 'Cliente', value: selected.customer_name },
                 { label: 'Email', value: selected.customer_email || '—' },
+                { label: 'Teléfono', value: selected.customer_phone || '—' },
                 { label: 'DNI/CUIT', value: selected.customer_doc || '—' },
                 { label: 'Empleado', value: selected.employees?.name || '—' },
                 { label: 'Pago', value: selected.payment_method },

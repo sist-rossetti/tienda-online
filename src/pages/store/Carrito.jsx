@@ -10,7 +10,7 @@ const PAGOS = ['Efectivo', 'Tarjeta', 'Transferencia']
 export default function Carrito({ cart, setCart }) {
   const { settings } = useStoreSettings()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', email: '', doc: '', payment: 'Efectivo', coupon: '', note: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', doc: '', payment: 'Efectivo', coupon: '', note: '' })
   const [couponData, setCouponData] = useState(null)
   const [couponError, setCouponError] = useState('')
   const [checkingCoupon, setCheckingCoupon] = useState(false)
@@ -57,6 +57,7 @@ export default function Carrito({ cart, setCart }) {
     const { data, error } = await supabase.rpc('checkout_order', {
       p_customer_name: form.name,
       p_customer_email: form.email || null,
+      p_customer_phone: form.phone || null,
       p_customer_doc: form.doc || null,
       p_payment_method: form.payment,
       p_note: form.note || null,
@@ -158,6 +159,10 @@ export default function Carrito({ cart, setCart }) {
                   <div>
                     <label className="text-xs text-stone-400 uppercase tracking-widest mb-1.5 block">Email</label>
                     <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full px-4 py-2.5 border border-stone-200 rounded-2xl text-sm outline-none focus:border-stone-400 transition" placeholder="juan@email.com" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-stone-400 uppercase tracking-widest mb-1.5 block">Teléfono</label>
+                    <input type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full px-4 py-2.5 border border-stone-200 rounded-2xl text-sm outline-none focus:border-stone-400 transition" placeholder="11 2345 6789" />
                   </div>
                   <div>
                     <label className="text-xs text-stone-400 uppercase tracking-widest mb-1.5 block">DNI / CUIT</label>
